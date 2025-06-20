@@ -1,8 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { DesignElement } from '../../types';
-import { ZoomIn, ZoomOut, Eye, RotateCcw, Maximize, Box } from 'lucide-react';
+import { ZoomIn, ZoomOut, Eye, RotateCcw, Maximize, Box, Settings } from 'lucide-react';
 import Model3DViewer from './Model3DViewer';
-import ElementToolbar from './ElementToolbar';
 
 interface CanvasProps {
   elements: DesignElement[];
@@ -28,16 +27,23 @@ const Canvas: React.FC<CanvasProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   const [show3D, setShow3D] = useState(false);
 
-  // Canvas dimensions based on mug specifications
-  const canvasWidth = mugView === 'front' ? 600 : 800;
+  // Canvas dimensions - larger for better editing
+  const canvasWidth = 600;
   const canvasHeight = 400;
   
   // Design area with safety margins
   const safeArea = {
-    x: 40,
-    y: 40,
-    width: canvasWidth - 80,
-    height: canvasHeight - 80
+    x: 50,
+    y: 50,
+    width: canvasWidth - 100,
+    height: canvasHeight - 100
+  };
+
+  const bleedArea = {
+    x: 30,
+    y: 30,
+    width: canvasWidth - 60,
+    height: canvasHeight - 60
   };
 
   const handleMouseDown = useCallback((e: React.MouseEvent, elementId: string) => {
@@ -68,9 +74,9 @@ const Canvas: React.FC<CanvasProps> = ({
     const newX = e.clientX - rect.left - dragStart.x;
     const newY = e.clientY - rect.top - dragStart.y;
 
-    // Constrain to safe area
-    const constrainedX = Math.max(safeArea.x, Math.min(newX, safeArea.x + safeArea.width - 50));
-    const constrainedY = Math.max(safeArea.y, Math.min(newY, safeArea.y + safeArea.height - 20));
+    // Constrain to canvas area
+    const constrainedX = Math.max(0, Math.min(newX, canvasWidth - 50));
+    const constrainedY = Math.max(0, Math.min(newY, canvasHeight - 50));
 
     // Update 3D mapping coordinates
     const element = elements.find(el => el.id === selectedElement);
@@ -84,7 +90,7 @@ const Canvas: React.FC<CanvasProps> = ({
         mapping: { u, v, scale: element.mapping?.scale || 1 }
       });
     }
-  }, [isDragging, selectedElement, dragStart, elements, onElementUpdate, safeArea, canvasWidth, canvasHeight]);
+  }, [isDragging, selectedElement, dragStart, elements, onElementUpdate, canvasWidth, canvasHeight]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -95,6 +101,11 @@ const Canvas: React.FC<CanvasProps> = ({
     if (e.target === e.currentTarget) {
       onElementSelect('');
     }
+  }, [onElementSelect]);
+
+  const handleTextDoubleClick = useCallback((elementId: string) => {
+    onElementSelect(elementId);
+    // Focus on text editing
   }, [onElementSelect]);
 
   const renderElement = (element: DesignElement) => {
@@ -120,18 +131,20 @@ const Canvas: React.FC<CanvasProps> = ({
             key={element.id}
             style={baseStyle}
             onMouseDown={(e) => handleMouseDown(e, element.id)}
+            onDoubleClick={() => handleTextDoubleClick(element.id)}
             className="group"
           >
             <div style={{
-              fontSize: element.styles?.fontSize || 24,
-              fontFamily: element.styles?.fontFamily || 'Arial',
+              fontSize: element.styles?.fontSize || 46,
+              fontFamily: element.styles?.fontFamily || 'Arimo',
               color: element.styles?.color || '#000000',
               backgroundColor: element.styles?.backgroundColor || 'transparent',
               fontWeight: element.styles?.fontWeight || 'normal',
               fontStyle: element.styles?.fontStyle || 'normal',
               textDecoration: element.styles?.textDecoration || 'none',
               textAlign: element.styles?.textAlign || 'center',
-              lineHeight: element.styles?.lineHeight || 1.2,
+              lineHeight: element.styles?.lineHeight || 1.4,
+              letterSpacing: element.styles?.letterSpacing ? `${element.styles.letterSpacing}px` : 'normal',
               width: '100%',
               height: '100%',
               display: 'flex',
@@ -140,14 +153,18 @@ const Canvas: React.FC<CanvasProps> = ({
                            element.styles?.textAlign === 'right' ? 'flex-end' : 'flex-start',
               userSelect: 'none',
               padding: '8px',
-              borderRadius: '4px'
+              borderRadius: '4px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden'
             }}>
               {element.content}
             </div>
             {isSelected && (
               <>
                 <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-se-resize" />
-                <ElementToolbar elementId={element.id} />
+                <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-nw-resize" />
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-ne-resize" />
+                <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-sw-resize" />
               </>
             )}
           </div>
@@ -177,7 +194,9 @@ const Canvas: React.FC<CanvasProps> = ({
             {isSelected && (
               <>
                 <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-se-resize" />
-                <ElementToolbar elementId={element.id} />
+                <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-nw-resize" />
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-ne-resize" />
+                <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-sw-resize" />
               </>
             )}
           </div>
@@ -206,7 +225,9 @@ const Canvas: React.FC<CanvasProps> = ({
             {isSelected && (
               <>
                 <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-se-resize" />
-                <ElementToolbar elementId={element.id} />
+                <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-nw-resize" />
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-ne-resize" />
+                <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 border-2 border-white rounded cursor-sw-resize" />
               </>
             )}
           </div>
@@ -259,25 +280,6 @@ const Canvas: React.FC<CanvasProps> = ({
           <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
             <span className="text-sm font-medium text-gray-700">{mugView === 'front' ? 'Front' : 'Wraparound'}</span>
           </div>
-          <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 shadow-sm border">
-            <button
-              onClick={() => setZoom(Math.max(50, zoom - 25))}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Zoom Out"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </button>
-            <span className="text-sm font-medium text-gray-700 min-w-[3rem] text-center">
-              {zoom}%
-            </span>
-            <button
-              onClick={() => setZoom(Math.min(200, zoom + 25))}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Zoom In"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </button>
-          </div>
         </div>
       </div>
 
@@ -301,7 +303,7 @@ const Canvas: React.FC<CanvasProps> = ({
             >
               {/* Safety Area Guidelines */}
               <div
-                className="absolute border-2 border-dashed border-green-500 bg-green-50 bg-opacity-20 pointer-events-none"
+                className="absolute border-2 border-dashed border-green-500 bg-green-50 bg-opacity-10 pointer-events-none"
                 style={{
                   left: safeArea.x,
                   top: safeArea.y,
@@ -312,20 +314,20 @@ const Canvas: React.FC<CanvasProps> = ({
               
               {/* Bleed Area Guidelines */}
               <div
-                className="absolute border-2 border-dashed border-blue-500 bg-blue-50 bg-opacity-20 pointer-events-none"
+                className="absolute border-2 border-dashed border-blue-500 bg-blue-50 bg-opacity-10 pointer-events-none"
                 style={{
-                  left: 20,
-                  top: 20,
-                  width: canvasWidth - 40,
-                  height: canvasHeight - 40
+                  left: bleedArea.x,
+                  top: bleedArea.y,
+                  width: bleedArea.width,
+                  height: bleedArea.height
                 }}
               />
               
               {/* Guidelines Labels */}
-              <div className="absolute top-2 left-2 text-xs text-green-600 font-medium pointer-events-none">
+              <div className="absolute top-12 left-12 text-xs text-green-600 font-medium pointer-events-none">
                 Safety Area
               </div>
-              <div className="absolute top-2 right-2 text-xs text-blue-600 font-medium pointer-events-none">
+              <div className="absolute top-12 right-12 text-xs text-blue-600 font-medium pointer-events-none">
                 Bleed
               </div>
               
@@ -343,9 +345,9 @@ const Canvas: React.FC<CanvasProps> = ({
               {elements.filter(el => el.surface === mugView).length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="text-center text-gray-400">
-                    <div className="text-6xl mb-4">📁</div>
-                    <div className="text-2xl font-light">Upload Your</div>
-                    <div className="text-2xl font-light">Design</div>
+                    <div className="text-8xl mb-4 opacity-50">📁</div>
+                    <div className="text-4xl font-light opacity-70">Upload Your</div>
+                    <div className="text-4xl font-light opacity-70">Design</div>
                   </div>
                 </div>
               )}
@@ -355,7 +357,7 @@ const Canvas: React.FC<CanvasProps> = ({
             <div className="mt-4 flex justify-center">
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <span>17.2cm</span>
-                <div className="w-8 h-px bg-gray-400"></div>
+                <div className="w-16 h-px bg-gray-400"></div>
                 <span>7cm</span>
               </div>
             </div>
@@ -374,13 +376,13 @@ const Canvas: React.FC<CanvasProps> = ({
               max="200"
               value={zoom}
               onChange={(e) => setZoom(parseInt(e.target.value))}
-              className="w-24"
+              className="w-32"
             />
           </div>
           <select
             value={zoom}
             onChange={(e) => setZoom(parseInt(e.target.value))}
-            className="px-3 py-1 border border-gray-300 rounded text-sm"
+            className="px-3 py-2 border border-gray-300 rounded text-sm bg-white"
           >
             <option value="50">50%</option>
             <option value="75">75%</option>
@@ -389,7 +391,7 @@ const Canvas: React.FC<CanvasProps> = ({
             <option value="150">150%</option>
             <option value="200">200%</option>
           </select>
-          <button className="flex items-center space-x-2 px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+          <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 bg-white">
             <Settings className="h-4 w-4" />
             <span>View</span>
           </button>

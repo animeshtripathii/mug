@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { DesignElement, MugOptions, GraphicItem, QRCodeOptions, TableData } from '../types';
 import Toolbar from './DesignEditor/Toolbar';
 import Canvas from './DesignEditor/Canvas';
+import TopTextToolbar from './DesignEditor/TopTextToolbar';
 import { Save, Download, Share2, ArrowLeft, Settings, Undo, Redo, Eye } from 'lucide-react';
 
 interface DesignEditorProps {
@@ -47,24 +48,24 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
       id: generateId(),
       type: 'text',
       content: 'Type text here',
-      x: 100,
-      y: 100,
+      x: 300,
+      y: 200,
       width: 200,
-      height: 40,
+      height: 50,
       rotation: 0,
       zIndex: elements.length,
       surface: mugView,
       styles: {
-        fontSize: 24,
-        fontFamily: 'Arial',
+        fontSize: 46,
+        fontFamily: 'Arimo',
         color: '#000000',
         fontWeight: 'normal',
         textAlign: 'center',
-        lineHeight: 1.2
+        lineHeight: 1.4
       },
       mapping: {
-        u: 100 / 300,
-        v: 100 / 200,
+        u: 300 / 600,
+        v: 200 / 400,
         scale: 1
       }
     };
@@ -82,8 +83,8 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
         id: generateId(),
         type: 'image',
         content: e.target?.result as string,
-        x: 120,
-        y: 120,
+        x: 250,
+        y: 150,
         width: 100,
         height: 100,
         rotation: 0,
@@ -91,8 +92,8 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
         surface: mugView,
         altText: file.name,
         mapping: {
-          u: 120 / 300,
-          v: 120 / 200,
+          u: 250 / 600,
+          v: 150 / 400,
           scale: 1
         }
       };
@@ -109,8 +110,8 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
       id: generateId(),
       type: 'graphic',
       content: graphic.svg,
-      x: 140,
-      y: 140,
+      x: 280,
+      y: 180,
       width: 60,
       height: 60,
       rotation: 0,
@@ -121,8 +122,8 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
         color: '#FFD700'
       },
       mapping: {
-        u: 140 / 300,
-        v: 140 / 200,
+        u: 280 / 600,
+        v: 180 / 400,
         scale: 1
       }
     };
@@ -138,8 +139,8 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
       id: generateId(),
       type: 'qr',
       content: options.data,
-      x: 160,
-      y: 160,
+      x: 270,
+      y: 170,
       width: options.size / 4,
       height: options.size / 4,
       rotation: 0,
@@ -151,8 +152,8 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
         borderRadius: options.borderRadius
       },
       mapping: {
-        u: 160 / 300,
-        v: 160 / 200,
+        u: 270 / 600,
+        v: 170 / 400,
         scale: 1
       }
     };
@@ -168,16 +169,16 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
       id: generateId(),
       type: 'table',
       content: JSON.stringify(tableData),
-      x: 80,
-      y: 80,
-      width: 140,
-      height: 60,
+      x: 200,
+      y: 150,
+      width: 200,
+      height: 100,
       rotation: 0,
       zIndex: elements.length,
       surface: mugView,
       mapping: {
-        u: 80 / 300,
-        v: 80 / 200,
+        u: 200 / 600,
+        v: 150 / 400,
         scale: 1
       }
     };
@@ -238,6 +239,8 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
   const handleSave = () => {
     onSave(elements);
   };
+
+  const selectedElementData = elements.find(el => el.id === selectedElement);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -303,6 +306,16 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
           </div>
         </div>
       </div>
+
+      {/* Top Text Toolbar - Only show when text is selected */}
+      {selectedElementData?.type === 'text' && (
+        <TopTextToolbar
+          selectedElement={selectedElementData}
+          onElementUpdate={updateElement}
+          onDuplicate={duplicateElement}
+          onDelete={deleteElement}
+        />
+      )}
 
       {/* Main Editor */}
       <div className="flex-1 flex">
