@@ -69,7 +69,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     { id: 'text', icon: Type, label: 'Text', tooltip: 'Add and edit text' },
     { id: 'image', icon: Image, label: 'Images', tooltip: 'Upload and edit images' },
     { id: 'graphics', icon: Shapes, label: 'Graphics', tooltip: 'Add shapes and icons' },
-    { id: 'qr', icon: QrCode, label: 'QR Code', tooltip: 'Generate QR codes' },
+    { id: 'qr', icon: QrCode, label: 'QR-codes', tooltip: 'Generate QR codes' },
     { id: 'table', icon: Table, label: 'Tables', tooltip: 'Insert and edit tables' }
   ];
 
@@ -86,18 +86,45 @@ const Toolbar: React.FC<ToolbarProps> = ({
     switch (activeMode) {
       case 'text':
         return (
-          <div className="space-y-4">
-            <button
-              onClick={onAddText}
-              className="w-full flex items-center justify-center space-x-2 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              <span>New Text Field</span>
-            </button>
-            <TextEditor
-              selectedElement={selectedElementData}
-              onElementUpdate={onElementUpdate}
-            />
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Text</h3>
+              <p className="text-gray-600 text-sm mb-6">
+                Edit your text below, or click on the field you'd like to edit directly on your design.
+              </p>
+              
+              {selectedElementData?.type === 'text' ? (
+                <div className="space-y-4">
+                  <div>
+                    <input
+                      type="text"
+                      value={selectedElementData.content}
+                      onChange={(e) => onElementUpdate(selectedElementData.id, { content: e.target.value })}
+                      placeholder="Type text here"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                    />
+                  </div>
+                  <TextEditor
+                    selectedElement={selectedElementData}
+                    onElementUpdate={onElementUpdate}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Type text here"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg mb-4"
+                  />
+                  <button
+                    onClick={onAddText}
+                    className="w-full bg-blue-400 text-white py-3 rounded-lg font-medium hover:bg-blue-500 transition-colors"
+                  >
+                    New Text Field
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         );
       
@@ -134,103 +161,35 @@ const Toolbar: React.FC<ToolbarProps> = ({
         );
       
       default:
-        return (
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-4xl mb-2">🎨</div>
-            <p>Select a tool to get started</p>
-          </div>
-        );
+        return null;
     }
   };
 
   return (
-    <div className="w-80 bg-white shadow-lg h-full border-r border-gray-200 overflow-y-auto">
-      <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <h3 className="text-lg font-semibold">Design Tools</h3>
-        <p className="text-sm opacity-90">Create your perfect mug design</p>
-      </div>
-      
-      {/* Undo/Redo */}
-      <div className="p-4 border-b">
-        <div className="flex space-x-2">
-          <button
-            onClick={onUndo}
-            className="flex-1 flex items-center justify-center space-x-2 p-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
-            title="Undo"
-          >
-            <Undo className="h-4 w-4" />
-            <span className="text-sm">Undo</span>
-          </button>
-          <button
-            onClick={onRedo}
-            className="flex-1 flex items-center justify-center space-x-2 p-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
-            title="Redo"
-          >
-            <Redo className="h-4 w-4" />
-            <span className="text-sm">Redo</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Tools */}
+    <div className="w-80 bg-white shadow-sm h-full border-r border-gray-200 overflow-y-auto">
+      {/* Tool Icons */}
       <div className="p-4 space-y-2">
-        <h4 className="text-sm font-semibold text-gray-700 mb-3">Design Elements</h4>
         {tools.map((tool) => (
           <button
             key={tool.id}
             onClick={() => onModeChange(tool.id)}
             title={tool.tooltip}
-            className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+            className={`w-full flex flex-col items-center p-4 rounded-lg transition-all duration-200 ${
               activeMode === tool.id 
-                ? 'bg-blue-100 text-blue-700 border border-blue-200 shadow-sm' 
-                : 'hover:bg-gray-100 text-gray-700 hover:shadow-sm'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                : 'hover:bg-gray-50 text-gray-700'
             }`}
           >
-            <tool.icon className="h-5 w-5" />
-            <span className="font-medium">{tool.label}</span>
+            <tool.icon className="h-6 w-6 mb-2" />
+            <span className="text-sm font-medium">{tool.label}</span>
           </button>
         ))}
       </div>
 
       {/* Tool Content */}
-      <div className="p-4 border-t bg-gray-50">
-        {renderToolContent()}
-      </div>
-
-      {/* Element Actions */}
-      {selectedElement && (
-        <div className="p-4 border-t">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">Element Actions</h4>
-          <div className="grid grid-cols-2 gap-2">
-            <button 
-              onClick={() => onElementStyleChange('rotation', -90)}
-              className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-              title="Rotate Left"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-            <button 
-              onClick={() => onElementStyleChange('rotation', 90)}
-              className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-              title="Rotate Right"
-            >
-              <RotateCw className="h-4 w-4" />
-            </button>
-            <button 
-              onClick={onDuplicateElement}
-              className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-              title="Duplicate"
-            >
-              <Copy className="h-4 w-4" />
-            </button>
-            <button 
-              onClick={onDeleteElement}
-              className="flex items-center justify-center p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors"
-              title="Delete"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
+      {activeMode && (
+        <div className="border-t bg-gray-50 p-6 min-h-96">
+          {renderToolContent()}
         </div>
       )}
 

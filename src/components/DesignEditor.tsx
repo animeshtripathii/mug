@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { DesignElement, MugOptions, GraphicItem, QRCodeOptions, TableData } from '../types';
 import Toolbar from './DesignEditor/Toolbar';
 import Canvas from './DesignEditor/Canvas';
-import { Save, Download, Share2, ArrowLeft, Settings } from 'lucide-react';
+import { Save, Download, Share2, ArrowLeft, Settings, Undo, Redo, Eye } from 'lucide-react';
 
 interface DesignEditorProps {
   onBack: () => void;
@@ -46,21 +46,21 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
     const newElement: DesignElement = {
       id: generateId(),
       type: 'text',
-      content: 'Your Text Here',
+      content: 'Type text here',
       x: 100,
       y: 100,
-      width: 150,
-      height: 30,
+      width: 200,
+      height: 40,
       rotation: 0,
       zIndex: elements.length,
       surface: mugView,
       styles: {
-        fontSize: 16,
+        fontSize: 24,
         fontFamily: 'Arial',
         color: '#000000',
         fontWeight: 'normal',
-        textAlign: 'left',
-        lineHeight: 1.5
+        textAlign: 'center',
+        lineHeight: 1.2
       },
       mapping: {
         u: 100 / 300,
@@ -140,7 +140,7 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
       content: options.data,
       x: 160,
       y: 160,
-      width: options.size / 4, // Scale down for canvas
+      width: options.size / 4,
       height: options.size / 4,
       rotation: 0,
       zIndex: elements.length,
@@ -240,93 +240,69 @@ const DesignEditor: React.FC<DesignEditorProps> = ({ onBack, onSave }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b px-6 py-4">
+      <div className="bg-white shadow-sm border-b px-6 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <button
               onClick={onBack}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span>Back to Product</span>
+              <span>My Projects</span>
             </button>
             <div className="h-6 w-px bg-gray-300" />
-            <h1 className="text-xl font-semibold text-gray-900">Mug Design Editor</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              MugCraft Pro
+            </h1>
+            <div className="h-6 w-px bg-gray-300" />
+            <span className="text-gray-600">Personalised Mugs</span>
           </div>
           
           <div className="flex items-center space-x-3">
+            <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors">
+              <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+              <span>Save</span>
+            </button>
             <button
-              onClick={() => setShowSpecs(!showSpecs)}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
+              onClick={undo}
+              disabled={historyIndex <= 0}
+              className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Undo"
             >
-              <Settings className="h-4 w-4" />
-              <span>Specs & Guidelines</span>
+              <Undo className="h-5 w-5" />
+            </button>
+            <button
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Redo"
+            >
+              <Redo className="h-5 w-5" />
+            </button>
+            <div className="h-6 w-px bg-gray-300" />
+            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+              <Eye className="h-4 w-4" />
+              <span>Specs & Templates</span>
             </button>
             <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-              <Share2 className="h-4 w-4" />
-              <span>Share</span>
+              <Settings className="h-4 w-4" />
+              <span>Change size</span>
+            </button>
+            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+              <Eye className="h-4 w-4" />
+              <span>Preview</span>
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center space-x-2 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
             >
-              <Save className="h-4 w-4" />
-              <span>Save Design</span>
-            </button>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-              <Download className="h-4 w-4" />
               <span>Next</span>
             </button>
           </div>
         </div>
       </div>
-
-      {/* Specs Modal */}
-      {showSpecs && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Design Specifications</h2>
-              <button
-                onClick={() => setShowSpecs(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Print Area Dimensions</h3>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Front design area: 17.2 cm × 7 cm</li>
-                  <li>• Wraparound design area: 22 cm × 7 cm</li>
-                  <li>• Safe print margin: 2 cm from edges</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">Image Requirements</h3>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Minimum resolution: 300 DPI</li>
-                  <li>• Supported formats: JPG, PNG, PDF</li>
-                  <li>• Maximum file size: 10 MB</li>
-                  <li>• Color mode: RGB</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">Design Tips</h3>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Keep important content within safe area</li>
-                  <li>• Use high contrast for better visibility</li>
-                  <li>• Consider mug curvature for wraparound designs</li>
-                  <li>• Test readability at actual size</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Editor */}
       <div className="flex-1 flex">
