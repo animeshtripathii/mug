@@ -7,33 +7,36 @@ import { TextProvider } from './context/TextContext';
 import { ImageProvider } from './context/ImageContext';
 import { GraphicsProvider } from './context/GraphicsContext';
 import { QRProvider } from './context/QRContext';
+import { ViewProvider } from './context/ViewContext';
 
 function App() {
   return (
-    <TextProvider>
-      <ImageProvider>
-        <GraphicsProvider>
-          <QRProvider>
-            <div className="h-screen flex flex-col bg-gray-50">
-              {/* Header */}
-              <EnhancedHeader />
-              
-              {/* Main Content */}
-              <div className="flex-1 flex overflow-hidden">
-                {/* Sidebar */}
-                <EnhancedSidebar />
+    <ViewProvider>
+      <TextProvider>
+        <ImageProvider>
+          <GraphicsProvider>
+            <QRProvider>
+              <div className="h-screen flex flex-col bg-gray-50">
+                {/* Header */}
+                <EnhancedHeader />
                 
-                {/* Canvas Area */}
-                <Canvas />
+                {/* Main Content */}
+                <div className="flex-1 flex overflow-hidden">
+                  {/* Sidebar */}
+                  <EnhancedSidebar />
+                  
+                  {/* Canvas Area */}
+                  <Canvas />
+                </div>
+                
+                {/* Bottom Controls */}
+                <BottomControls />
               </div>
-              
-              {/* Bottom Controls */}
-              <BottomControls />
-            </div>
-          </QRProvider>
-        </GraphicsProvider>
-      </ImageProvider>
-    </TextProvider>
+            </QRProvider>
+          </GraphicsProvider>
+        </ImageProvider>
+      </TextProvider>
+    </ViewProvider>
   );
 }
 

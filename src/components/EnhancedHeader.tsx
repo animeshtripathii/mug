@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Save, Undo, Redo, FileText, Maximize2, Eye, ChevronRight } from 'lucide-react';
 import ViewOptionsPanel from './ViewOptionsPanel';
 import Preview3DModal from './Preview3DModal';
+import { useViewContext } from '../context/ViewContext';
 
 interface ViewOption {
   id: string;
@@ -13,40 +14,7 @@ interface ViewOption {
 const EnhancedHeader: React.FC = () => {
   const [showViewPanel, setShowViewPanel] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [viewOptions, setViewOptions] = useState<ViewOption[]>([
-    {
-      id: 'grids',
-      label: 'Grids',
-      description: 'Used to align your design.',
-      enabled: false,
-    },
-    {
-      id: 'rulers',
-      label: 'Rulers',
-      description: 'This is the size of your design.',
-      enabled: true,
-    },
-    {
-      id: 'safety-bleed',
-      label: 'Safety area & Bleed',
-      description: 'Text and images should fit inside, anything outside the line will get cut.',
-      enabled: true,
-    },
-    {
-      id: 'highlight-empty',
-      label: 'Highlight empty text',
-      description: 'Empty text is indicated by dashed line around text box.',
-      enabled: true,
-    },
-  ]);
-
-  const handleToggleOption = (id: string) => {
-    setViewOptions(prev =>
-      prev.map(option =>
-        option.id === id ? { ...option, enabled: !option.enabled } : option
-      )
-    );
-  };
+  const { viewOptions, toggleViewOption } = useViewContext();
 
   const handlePreviewClick = () => {
     setShowPreviewModal(true);
@@ -119,7 +87,7 @@ const EnhancedHeader: React.FC = () => {
           isOpen={showViewPanel}
           onClose={() => setShowViewPanel(false)}
           viewOptions={viewOptions}
-          onToggleOption={handleToggleOption}
+          onToggleOption={toggleViewOption}
         />
       </div>
 

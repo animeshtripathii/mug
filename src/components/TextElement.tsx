@@ -2,12 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { TextElement as TextElementType } from '../types/TextElement';
 import { useTextContext } from '../context/TextContext';
 
-
 interface TextElementProps {
   element: TextElementType;
+  highlightEmpty?: boolean;
 }
 
-const TextElement: React.FC<TextElementProps> = ({ element }) => {
+const TextElement: React.FC<TextElementProps> = ({ element, highlightEmpty = false }) => {
   const { updateTextElement, selectTextElement, selectedTextId } = useTextContext();
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -20,6 +20,8 @@ const TextElement: React.FC<TextElementProps> = ({ element }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isSelected = element.id === selectedTextId;
+  const isEmpty = !element.text || element.text.trim() === '' || element.text === 'Your Text Here';
+  const shouldHighlight = highlightEmpty && isEmpty;
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -215,6 +217,26 @@ const TextElement: React.FC<TextElementProps> = ({ element }) => {
     }
   };
 
+  const getBorderStyle = () => {
+    if (isSelected) {
+      return '2px dashed #3b82f6';
+    } else if (shouldHighlight) {
+      return '2px dashed #ef4444'; // Red dashed border for empty text
+    } else {
+      return '2px dashed transparent';
+    }
+  };
+
+  const getBackgroundColor = () => {
+    if (isSelected) {
+      return 'rgba(59, 130, 246, 0.1)';
+    } else if (shouldHighlight) {
+      return 'rgba(239, 68, 68, 0.1)'; // Light red background for empty text
+    } else {
+      return 'transparent';
+    }
+  };
+
   const textStyle: React.CSSProperties = {
     position: 'absolute',
     left: element.x,
@@ -225,9 +247,9 @@ const TextElement: React.FC<TextElementProps> = ({ element }) => {
     cursor: isDragging ? 'grabbing' : (isSelected ? 'grab' : 'pointer'),
     userSelect: 'none',
     padding: '8px 12px',
-    border: isSelected ? '2px dashed #3b82f6' : '2px dashed transparent',
+    border: getBorderStyle(),
     borderRadius: '4px',
-    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+    backgroundColor: getBackgroundColor(),
     transition: isDragging || isResizing ? 'none' : 'all 0.2s ease',
     opacity: (element.opacity || 100) / 100,
     display: 'flex',
@@ -340,9 +362,6 @@ const TextElement: React.FC<TextElementProps> = ({ element }) => {
             </>
           )}
         </div>
-
-        {/* Floating Toolbar - Always render when selected */}
-    
       </>
     );
   }
@@ -400,9 +419,6 @@ const TextElement: React.FC<TextElementProps> = ({ element }) => {
           </>
         )}
       </div>
-
-      {/* Floating Toolbar - Always render when selected */}
-   
     </>
   );
 };
