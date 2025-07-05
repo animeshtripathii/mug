@@ -90,7 +90,7 @@ const EnhancedHeader: React.FC = () => {
               }`}
             >
               <Eye className="w-4 h-4" />
-              <span>View</span>
+              <span>Preview</span>
             </button>
 
             <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
