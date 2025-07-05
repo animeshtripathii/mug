@@ -13,7 +13,7 @@ const ImageElement: React.FC<ImageElementProps> = ({ element }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<string>('');
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, elementX: 0, elementY: 0 });
-  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, elementX: 0, elementY: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
 
   const isSelected = element.id === selectedImageId;
@@ -61,6 +61,8 @@ const ImageElement: React.FC<ImageElementProps> = ({ element }) => {
       y: e.clientY,
       width: element.width,
       height: element.height,
+      elementX: element.x,
+      elementY: element.y,
     });
   };
 
@@ -96,8 +98,8 @@ const ImageElement: React.FC<ImageElementProps> = ({ element }) => {
       
       let newWidth = resizeStart.width;
       let newHeight = resizeStart.height;
-      let newX = element.x;
-      let newY = element.y;
+      let newX = resizeStart.elementX;
+      let newY = resizeStart.elementY;
 
       // Maintain aspect ratio
       const aspectRatio = element.originalWidth / element.originalHeight;
@@ -106,22 +108,44 @@ const ImageElement: React.FC<ImageElementProps> = ({ element }) => {
         case 'nw':
           newWidth = Math.max(50, resizeStart.width - deltaX);
           newHeight = newWidth / aspectRatio;
-          newX = Math.max(0, element.x + (resizeStart.width - newWidth));
-          newY = Math.max(0, element.y + (resizeStart.height - newHeight));
+          newX = Math.max(0, resizeStart.elementX + deltaX);
+          newY = Math.max(0, resizeStart.elementY + (resizeStart.height - newHeight));
+          break;
+        case 'n':
+          newHeight = Math.max(50, resizeStart.height - deltaY);
+          newWidth = newHeight * aspectRatio;
+          newY = Math.max(0, resizeStart.elementY + deltaY);
+          newX = resizeStart.elementX + (resizeStart.width - newWidth) / 2;
           break;
         case 'ne':
-          newWidth = Math.max(50, Math.min(canvasRect.width - element.x, resizeStart.width + deltaX));
+          newWidth = Math.max(50, resizeStart.width + deltaX);
           newHeight = newWidth / aspectRatio;
-          newY = Math.max(0, element.y + (resizeStart.height - newHeight));
+          newY = Math.max(0, resizeStart.elementY + (resizeStart.height - newHeight));
+          break;
+        case 'e':
+          newWidth = Math.max(50, resizeStart.width + deltaX);
+          newHeight = newWidth / aspectRatio;
+          newY = resizeStart.elementY + (resizeStart.height - newHeight) / 2;
+          break;
+        case 'se':
+          newWidth = Math.max(50, resizeStart.width + deltaX);
+          newHeight = newWidth / aspectRatio;
+          break;
+        case 's':
+          newHeight = Math.max(50, resizeStart.height + deltaY);
+          newWidth = newHeight * aspectRatio;
+          newX = resizeStart.elementX + (resizeStart.width - newWidth) / 2;
           break;
         case 'sw':
           newWidth = Math.max(50, resizeStart.width - deltaX);
           newHeight = newWidth / aspectRatio;
-          newX = Math.max(0, element.x + (resizeStart.width - newWidth));
+          newX = Math.max(0, resizeStart.elementX + deltaX);
           break;
-        case 'se':
-          newWidth = Math.max(50, Math.min(canvasRect.width - element.x, resizeStart.width + deltaX));
+        case 'w':
+          newWidth = Math.max(50, resizeStart.width - deltaX);
           newHeight = newWidth / aspectRatio;
+          newX = Math.max(0, resizeStart.elementX + deltaX);
+          newY = resizeStart.elementY + (resizeStart.height - newHeight) / 2;
           break;
       }
 
@@ -179,6 +203,55 @@ const ImageElement: React.FC<ImageElementProps> = ({ element }) => {
     clipPath: element.clipPath || 'none',
   };
 
+  // 8 Anchor Resize Handles Component
+  const ResizeHandles = () => (
+    <>
+      {/* Corner handles */}
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-nw-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: -6, left: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-ne-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: -6, right: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-sw-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ bottom: -6, left: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-se-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ bottom: -6, right: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
+      ></div>
+      
+      {/* Side handles */}
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-n-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: -6, left: '50%', transform: 'translateX(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'n')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-s-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ bottom: -6, left: '50%', transform: 'translateX(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 's')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-w-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: '50%', left: -6, transform: 'translateY(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'w')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-e-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: '50%', right: -6, transform: 'translateY(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'e')}
+      ></div>
+    </>
+  );
+
   return (
     <>
       <div
@@ -200,36 +273,7 @@ const ImageElement: React.FC<ImageElementProps> = ({ element }) => {
           draggable={false}
         />
         
-        {isSelected && (
-          <>
-            {/* Resize handles */}
-            <div 
-              className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 rounded-full cursor-nw-resize hover:bg-blue-600 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
-            ></div>
-            <div 
-              className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-ne-resize hover:bg-blue-600 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
-            ></div>
-            <div 
-              className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 rounded-full cursor-sw-resize hover:bg-blue-600 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
-            ></div>
-            <div 
-              className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-se-resize hover:bg-blue-600 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
-            ></div>
-            
-            {/* Move cursor indicator */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-              <div className="w-6 h-6 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-              </div>
-            </div>
-          </>
-        )}
+        {isSelected && <ResizeHandles />}
       </div>
 
       {/* Floating Toolbar - Always render when selected */}

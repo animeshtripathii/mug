@@ -14,7 +14,7 @@ const GraphicElement: React.FC<GraphicElementProps> = ({ element }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<string>('');
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, elementX: 0, elementY: 0 });
-  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, elementX: 0, elementY: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
 
   const isSelected = element.id === selectedGraphicId;
@@ -48,6 +48,8 @@ const GraphicElement: React.FC<GraphicElementProps> = ({ element }) => {
       y: e.clientY,
       width: element.width,
       height: element.height,
+      elementX: element.x,
+      elementY: element.y,
     });
   };
 
@@ -80,29 +82,43 @@ const GraphicElement: React.FC<GraphicElementProps> = ({ element }) => {
       
       let newWidth = resizeStart.width;
       let newHeight = resizeStart.height;
-      let newX = element.x;
-      let newY = element.y;
+      let newX = resizeStart.elementX;
+      let newY = resizeStart.elementY;
 
       switch (resizeHandle) {
         case 'nw':
           newWidth = Math.max(20, resizeStart.width - deltaX);
           newHeight = Math.max(20, resizeStart.height - deltaY);
-          newX = Math.max(0, element.x + (resizeStart.width - newWidth));
-          newY = Math.max(0, element.y + (resizeStart.height - newHeight));
+          newX = Math.max(0, resizeStart.elementX + deltaX);
+          newY = Math.max(0, resizeStart.elementY + deltaY);
+          break;
+        case 'n':
+          newHeight = Math.max(20, resizeStart.height - deltaY);
+          newY = Math.max(0, resizeStart.elementY + deltaY);
           break;
         case 'ne':
-          newWidth = Math.max(20, Math.min(canvasRect.width - element.x, resizeStart.width + deltaX));
+          newWidth = Math.max(20, resizeStart.width + deltaX);
           newHeight = Math.max(20, resizeStart.height - deltaY);
-          newY = Math.max(0, element.y + (resizeStart.height - newHeight));
+          newY = Math.max(0, resizeStart.elementY + deltaY);
+          break;
+        case 'e':
+          newWidth = Math.max(20, resizeStart.width + deltaX);
+          break;
+        case 'se':
+          newWidth = Math.max(20, resizeStart.width + deltaX);
+          newHeight = Math.max(20, resizeStart.height + deltaY);
+          break;
+        case 's':
+          newHeight = Math.max(20, resizeStart.height + deltaY);
           break;
         case 'sw':
           newWidth = Math.max(20, resizeStart.width - deltaX);
-          newHeight = Math.max(20, Math.min(canvasRect.height - element.y, resizeStart.height + deltaY));
-          newX = Math.max(0, element.x + (resizeStart.width - newWidth));
+          newHeight = Math.max(20, resizeStart.height + deltaY);
+          newX = Math.max(0, resizeStart.elementX + deltaX);
           break;
-        case 'se':
-          newWidth = Math.max(20, Math.min(canvasRect.width - element.x, resizeStart.width + deltaX));
-          newHeight = Math.max(20, Math.min(canvasRect.height - element.y, resizeStart.height + deltaY));
+        case 'w':
+          newWidth = Math.max(20, resizeStart.width - deltaX);
+          newX = Math.max(0, resizeStart.elementX + deltaX);
           break;
       }
 
@@ -192,6 +208,55 @@ const GraphicElement: React.FC<GraphicElementProps> = ({ element }) => {
     }
   };
 
+  // 8 Anchor Resize Handles Component
+  const ResizeHandles = () => (
+    <>
+      {/* Corner handles */}
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-nw-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: -6, left: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-ne-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: -6, right: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-sw-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ bottom: -6, left: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-se-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ bottom: -6, right: -6 }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
+      ></div>
+      
+      {/* Side handles */}
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-n-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: -6, left: '50%', transform: 'translateX(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'n')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-s-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ bottom: -6, left: '50%', transform: 'translateX(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 's')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-w-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: '50%', left: -6, transform: 'translateY(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'w')}
+      ></div>
+      <div 
+        className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-e-resize hover:bg-blue-600 transition-colors shadow-sm"
+        style={{ top: '50%', right: -6, transform: 'translateY(-50%)' }}
+        onMouseDown={(e) => handleResizeMouseDown(e, 'e')}
+      ></div>
+    </>
+  );
+
   return (
     <>
       <div
@@ -202,27 +267,7 @@ const GraphicElement: React.FC<GraphicElementProps> = ({ element }) => {
       >
         {renderShape()}
         
-        {isSelected && (
-          <>
-            {/* Resize handles - white circles */}
-            <div 
-              className="absolute -top-2 -left-2 w-4 h-4 bg-white border-2 border-blue-500 rounded-full cursor-nw-resize hover:bg-blue-50 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
-            ></div>
-            <div 
-              className="absolute -top-2 -right-2 w-4 h-4 bg-white border-2 border-blue-500 rounded-full cursor-ne-resize hover:bg-blue-50 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
-            ></div>
-            <div 
-              className="absolute -bottom-2 -left-2 w-4 h-4 bg-white border-2 border-blue-500 rounded-full cursor-sw-resize hover:bg-blue-50 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
-            ></div>
-            <div 
-              className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border-2 border-blue-500 rounded-full cursor-se-resize hover:bg-blue-50 transition-colors"
-              onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
-            ></div>
-          </>
-        )}
+        {isSelected && <ResizeHandles />}
       </div>
 
       {/* Element Controls - positioned below the shape */}

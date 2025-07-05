@@ -793,3 +793,126 @@ input[type="range"]::-moz-range-thumb {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Enhanced 8-anchor resize handles */
+.resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #3b82f6;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  z-index: 15;
+}
+
+.resize-handle:hover {
+  transform: scale(1.2);
+  background: #2563eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Cursor styles for resize handles */
+.cursor-nw-resize { cursor: nw-resize; }
+.cursor-n-resize { cursor: n-resize; }
+.cursor-ne-resize { cursor: ne-resize; }
+.cursor-e-resize { cursor: e-resize; }
+.cursor-se-resize { cursor: se-resize; }
+.cursor-s-resize { cursor: s-resize; }
+.cursor-sw-resize { cursor: sw-resize; }
+.cursor-w-resize { cursor: w-resize; }
+
+/* Element selection states */
+.element-selected {
+  border: 2px dashed #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.element-hover:hover {
+  border: 2px dashed rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Improved element interaction feedback */
+.text-element.selected,
+.image-element.selected,
+.graphic-element.selected,
+.qr-element.selected {
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Enhanced resize handle positioning */
+.resize-handles {
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+}
+
+.resize-handles > * {
+  pointer-events: auto;
+}
+
+/* Smooth element transformations */
+.element-transform {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.element-transform:hover {
+  transform: translateZ(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Better visual feedback for dragging */
+.element-dragging {
+  cursor: grabbing !important;
+  transform: rotate(2deg) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  z-index: 20 !important;
+}
+
+/* Resize handle accessibility */
+.resize-handle:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Enhanced element borders for better visibility */
+.element-border {
+  border: 2px dashed transparent;
+  transition: border-color 0.2s ease;
+}
+
+.element-border.selected {
+  border-color: #3b82f6;
+  animation: borderPulse 2s infinite;
+}
+
+@keyframes borderPulse {
+  0%, 100% {
+    border-color: #3b82f6;
+  }
+  50% {
+    border-color: #60a5fa;
+  }
+}
+
+/* Improved element positioning guides */
+.positioning-guide {
+  position: absolute;
+  background: #3b82f6;
+  opacity: 0.6;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.positioning-guide.horizontal {
+  height: 1px;
+  left: 0;
+  right: 0;
+}
+
+.positioning-guide.vertical {
+  width: 1px;
+  top: 0;
+  bottom: 0;
+}
