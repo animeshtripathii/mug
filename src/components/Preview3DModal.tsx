@@ -11,7 +11,7 @@ interface Preview3DModalProps {
 
 // Mug 3D Model Component
 function MugModel({ rotation }: { rotation: [number, number, number] }) {
-  const { scene } = useGLTF('/mug/scenev1.gltf');
+  const { scene } = useGLTF('/mug/scene.gltf');
   const meshRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
