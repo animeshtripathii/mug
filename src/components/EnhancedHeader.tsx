@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Save, Undo, Redo, FileText, Maximize2, Eye, ChevronRight } from 'lucide-react';
 import ViewOptionsPanel from './ViewOptionsPanel';
+import Preview3DModal from './Preview3DModal';
 
 interface ViewOption {
   id: string;
@@ -11,6 +12,7 @@ interface ViewOption {
 
 const EnhancedHeader: React.FC = () => {
   const [showViewPanel, setShowViewPanel] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [viewOptions, setViewOptions] = useState<ViewOption[]>([
     {
       id: 'grids',
@@ -44,6 +46,11 @@ const EnhancedHeader: React.FC = () => {
         option.id === id ? { ...option, enabled: !option.enabled } : option
       )
     );
+  };
+
+  const handlePreviewClick = () => {
+    setShowPreviewModal(true);
+    setShowViewPanel(false);
   };
 
   return (
@@ -90,6 +97,14 @@ const EnhancedHeader: React.FC = () => {
               }`}
             >
               <Eye className="w-4 h-4" />
+              <span>View</span>
+            </button>
+
+            <button 
+              onClick={handlePreviewClick}
+              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
               <span>Preview</span>
             </button>
 
@@ -107,6 +122,12 @@ const EnhancedHeader: React.FC = () => {
           onToggleOption={handleToggleOption}
         />
       </div>
+
+      {/* 3D Preview Modal */}
+      <Preview3DModal
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+      />
     </>
   );
 };
