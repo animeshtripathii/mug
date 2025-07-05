@@ -26,8 +26,8 @@ function MugModel({ rotation }: { rotation: [number, number, number] }) {
     <primitive 
       ref={meshRef}
       object={scene} 
-      scale={[2, 2, 2]}
-      position={[0, -1, 0]}
+      scale={[15, 15, 15]}
+      position={[0, -2, 0]}
     />
   );
 }
@@ -126,12 +126,26 @@ const Preview3DModal: React.FC<Preview3DModalProps> = ({ isOpen, onClose }) => {
           <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 relative">
             <Suspense fallback={<LoadingSpinner />}>
               <Canvas
-                camera={{ position: [0, 0, 5], fov: 50 }}
+                camera={{ position: [0, 0, 8], fov: 50 }}
                 style={{ width: '100%', height: '100%' }}
               >
-                <ambientLight intensity={0.5} />
-                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-                <pointLight position={[-10, -10, -10]} />
+                {/* Enhanced Lighting Setup */}
+                <ambientLight intensity={0.6} />
+                <directionalLight 
+                  position={[10, 10, 5]} 
+                  intensity={1.2} 
+                  castShadow
+                  shadow-mapSize-width={2048}
+                  shadow-mapSize-height={2048}
+                />
+                <pointLight position={[-10, -10, -10]} intensity={0.5} />
+                <spotLight 
+                  position={[0, 10, 0]} 
+                  angle={0.3} 
+                  penumbra={1} 
+                  intensity={0.8}
+                  castShadow
+                />
                 
                 <PresentationControls
                   enabled={true}
@@ -148,6 +162,12 @@ const Preview3DModal: React.FC<Preview3DModalProps> = ({ isOpen, onClose }) => {
                 </PresentationControls>
                 
                 <Environment preset="studio" />
+                
+                {/* Ground plane for better depth perception */}
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]} receiveShadow>
+                  <planeGeometry args={[20, 20]} />
+                  <shadowMaterial opacity={0.2} />
+                </mesh>
               </Canvas>
             </Suspense>
 
