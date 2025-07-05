@@ -26,8 +26,8 @@ function MugModel({ rotation }: { rotation: [number, number, number] }) {
     <primitive 
       ref={meshRef}
       object={scene} 
-      scale={[15, 15, 15]}
-      position={[0, -2, 0]}
+      scale={[25, 25, 25]}
+      position={[0, -3, 0]}
     />
   );
 }
@@ -126,25 +126,36 @@ const Preview3DModal: React.FC<Preview3DModalProps> = ({ isOpen, onClose }) => {
           <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 relative">
             <Suspense fallback={<LoadingSpinner />}>
               <Canvas
-                camera={{ position: [0, 0, 8], fov: 50 }}
+                camera={{ position: [0, 0, 12], fov: 45 }}
                 style={{ width: '100%', height: '100%' }}
+                shadows
               >
                 {/* Enhanced Lighting Setup */}
-                <ambientLight intensity={0.6} />
+                <ambientLight intensity={0.8} />
                 <directionalLight 
-                  position={[10, 10, 5]} 
-                  intensity={1.2} 
+                  position={[15, 15, 8]} 
+                  intensity={1.5} 
                   castShadow
                   shadow-mapSize-width={2048}
                   shadow-mapSize-height={2048}
+                  shadow-camera-far={50}
+                  shadow-camera-left={-10}
+                  shadow-camera-right={10}
+                  shadow-camera-top={10}
+                  shadow-camera-bottom={-10}
                 />
-                <pointLight position={[-10, -10, -10]} intensity={0.5} />
+                <pointLight position={[-15, -15, -15]} intensity={0.6} />
                 <spotLight 
-                  position={[0, 10, 0]} 
-                  angle={0.3} 
+                  position={[0, 15, 0]} 
+                  angle={0.4} 
                   penumbra={1} 
-                  intensity={0.8}
+                  intensity={1.0}
                   castShadow
+                />
+                <hemisphereLight 
+                  skyColor="#ffffff" 
+                  groundColor="#444444" 
+                  intensity={0.4} 
                 />
                 
                 <PresentationControls
@@ -164,9 +175,9 @@ const Preview3DModal: React.FC<Preview3DModalProps> = ({ isOpen, onClose }) => {
                 <Environment preset="studio" />
                 
                 {/* Ground plane for better depth perception */}
-                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]} receiveShadow>
-                  <planeGeometry args={[20, 20]} />
-                  <shadowMaterial opacity={0.2} />
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -5, 0]} receiveShadow>
+                  <planeGeometry args={[30, 30]} />
+                  <shadowMaterial opacity={0.3} />
                 </mesh>
               </Canvas>
             </Suspense>
