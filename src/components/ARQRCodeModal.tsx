@@ -50,7 +50,7 @@ const ARQRCodeModal: React.FC<ARQRCodeModalProps> = ({
         qrElements,
         canvasSize,
         canvasBackgroundColor,
-        window.location.origin // <-- This will use the current domain!
+        window.location.origin // Always use the current domain
       );
       
       setQrCodeUrl(qrUrl);
@@ -67,7 +67,7 @@ const ARQRCodeModal: React.FC<ARQRCodeModalProps> = ({
         timestamp: Date.now()
       };
       
-      const link = generateARShareLink(designData, window.location.origin);
+      const link = generateARShareLink(designData, window.location.origin); // Always use the current domain
       setShareLink(link);
       
       console.log('AR QR code generated successfully');
