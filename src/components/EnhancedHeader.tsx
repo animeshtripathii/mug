@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Save, Undo, Redo, FileText, Maximize2, Eye, ChevronRight, Info } from 'lucide-react';
 import Preview3DModal from './Preview3DModal';
+import ARQRCodeModal from './ARQRCodeModal';
 import { useTextContext } from '../context/TextContext';
 import { useImageContext } from '../context/ImageContext';
 import { useGraphicsContext } from '../context/GraphicsContext';
@@ -8,6 +9,25 @@ import { useQRContext } from '../context/QRContext';
 
 const EnhancedHeader: React.FC = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showARQRModal, setShowARQRModal] = useState(false);
+  
+  // Get context data for AR
+  const { textElements } = useTextContext();
+  const { imageElements } = useImageContext();
+  const { graphicElements } = useGraphicsContext();
+  const { qrElements } = useQRContext();
+
+  const handleViewInAR = () => {
+    // Navigate directly to AR view
+    const designData = {
+      textElements, imageElements, graphicElements, qrElements,
+      canvasSize: { width: 688, height: 280 },
+      canvasBackgroundColor: '#FFFFFF',
+      designId: `design_${Date.now()}`, timestamp: Date.now()
+    };
+    localStorage.setItem(`ar_design_${designData.designId}`, JSON.stringify(designData));
+    window.location.href = `/ar-view?designId=${designData.designId}`;
+  };
   
   // Get context functions to clear selections when opening preview
   const { selectTextElement } = useTextContext();
@@ -72,6 +92,14 @@ const EnhancedHeader: React.FC = () => {
               <span>Preview</span>
             </button>
 
+            <button 
+              onClick={handleViewInAR}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:from-purple-600 hover:to-pink-600 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              <span>View in AR</span>
+            </button>
+
             <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
               Next
             </button>
@@ -84,6 +112,12 @@ const EnhancedHeader: React.FC = () => {
       <Preview3DModal
         isOpen={showPreviewModal}
         onClose={() => setShowPreviewModal(false)}
+      />
+
+      {/* AR QR Code Modal */}
+      <ARQRCodeModal
+        isOpen={showARQRModal}
+        onClose={() => setShowARQRModal(false)}
       />
     </>
   );

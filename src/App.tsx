@@ -30,7 +30,7 @@ function App() {
   // Handle AR view from URL hash
   useEffect(() => {
     const checkARRoute = () => {
-      if (window.location.pathname === '/ar-view') {
+      if (window.location.pathname === '/ar-view' || window.location.search.includes('designId=')) {
         setShowARViewer(true);
       } else {
         setShowARViewer(false);

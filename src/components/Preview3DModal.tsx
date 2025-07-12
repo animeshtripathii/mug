@@ -182,6 +182,26 @@ const Preview3DModal: React.FC<Preview3DModalProps> = ({ isOpen, onClose }) => {
   const { graphicElements } = useGraphicsContext();
   const { qrElements } = useQRContext();
 
+  const handleViewInAR = () => {
+    // Instead of showing QR modal, navigate directly to AR view
+    const designData = {
+      textElements,
+      imageElements,
+      graphicElements,
+      qrElements,
+      canvasSize: { width: 688, height: 280 },
+      canvasBackgroundColor: '#FFFFFF',
+      designId: `design_${Date.now()}`,
+      timestamp: Date.now()
+    };
+    
+    // Store design data for AR viewer
+    localStorage.setItem(`ar_design_${designData.designId}`, JSON.stringify(designData));
+    
+    // Navigate to AR view
+    window.location.href = `/ar-view?designId=${designData.designId}`;
+  };
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -327,11 +347,22 @@ const Preview3DModal: React.FC<Preview3DModalProps> = ({ isOpen, onClose }) => {
 
                 {/* View in AR Button */}
                 <button
-                  onClick={() => setShowARModal(true)}
+                  onClick={handleViewInAR}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-3 rounded-lg shadow-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 flex items-center space-x-2 font-medium"
                 >
                   <QrCode className="w-5 h-5" />
                   <span>View in AR</span>
+                </button>
+              </div>
+
+              {/* QR Code Button - separate from AR viewing */}
+              <div className="absolute top-20 right-4">
+                <button
+                  onClick={() => setShowARModal(true)}
+                  className="bg-white text-gray-700 px-3 py-2 rounded-lg shadow-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2 text-sm border"
+                >
+                  <QrCode className="w-4 h-4" />
+                  <span>Generate QR</span>
                 </button>
               </div>
 
