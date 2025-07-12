@@ -30,7 +30,18 @@ function App() {
   // Handle AR view from URL hash
   useEffect(() => {
     const checkARRoute = () => {
-      if (window.location.pathname === '/ar-view' || window.location.search.includes('designId=')) {
+      const isARRoute = window.location.pathname === '/ar-view' || 
+                       window.location.search.includes('designId=') ||
+                       window.location.hash === '#ar-view';
+      
+      console.log('Checking AR route:', {
+        pathname: window.location.pathname,
+        search: window.location.search,
+        hash: window.location.hash,
+        isARRoute
+      });
+      
+      if (isARRoute) {
         setShowARViewer(true);
       } else {
         setShowARViewer(false);
@@ -50,9 +61,17 @@ function App() {
   const handleCloseAR = () => {
     console.log('Closing AR viewer');
     setShowARViewer(false);
-    // Remove hash from URL
-    if (window.location.hash === '#ar-view') {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    
+    // Clean up URL and navigate back to editor
+    const baseUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState(null, '', baseUrl);
+    
+    // Force a clean state
+    setTimeout(() => {
+      if (window.location.search.includes('designId=') || window.location.hash === '#ar-view') {
+        window.location.href = baseUrl;
+      }
+    }, 100);
     }
   };
 

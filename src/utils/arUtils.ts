@@ -132,7 +132,7 @@ export async function generateCurrentDesignARQR(
   qrElements: any[],
   canvasSize: { width: number; height: number },
   canvasBackgroundColor: string,
-  baseUrl?: string
+  baseUrl: string = window.location.origin
 ): Promise<string> {
   const designData: ARDesignData = {
     textElements,
@@ -145,7 +145,9 @@ export async function generateCurrentDesignARQR(
     timestamp: Date.now()
   };
   
-  return generateARQRCode(designData, baseUrl);
+  // Always use the current domain for QR codes
+  const currentDomain = window.location.origin;
+  return generateARQRCode(designData, currentDomain);
 }
 
 // Parse AR data from QR code

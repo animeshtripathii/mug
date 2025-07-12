@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Html } from '@react-three/drei';
-import { X, ArrowLeft, Download, Share2, RotateCcw, AlertTriangle, Smartphone } from 'lucide-react';
+import { X, ArrowLeft, Download, Share2, RotateCcw, AlertTriangle, Smartphone, RefreshCw } from 'lucide-react';
 import * as THREE from 'three';
 import { useTextContext } from '../context/TextContext';
 import { useImageContext } from '../context/ImageContext';
@@ -195,72 +195,87 @@ const ARViewer: React.FC<ARViewerProps> = ({ isOpen, onClose }) => {
   const [isARSupported, setIsARSupported] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showInstructions, setShowInstructions] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [designData, setDesignData] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
       console.log('AR Viewer opened');
       
-      // Check for design data from URL parameters or QR code
-      const urlParams = new URLSearchParams(window.location.search);
-      const designId = urlParams.get('designId');
-      
-      if (designId && typeof window !== 'undefined') {
-        const storedData = localStorage.getItem(`ar_design_${designId}`);
-        if (storedData) {
-          try {
-            const parsedData = JSON.parse(storedData);
-            setDesignData(parsedData);
-            console.log('Loaded design data from QR code:', parsedData);
-          } catch (error) {
-            console.error('Error parsing stored design data:', error);
-          }
-        }
-      }
-      
-      // Check for AR support
-      const checkARSupport = async () => {
+      const initializeAR = async () => {
         try {
-          setIsLoading(true);
+          setIsInitializing(true);
           setError(null);
           
-          // Check for WebXR AR support
+          // Check for design data from URL parameters or QR code
+          const urlParams = new URLSearchParams(window.location.search);
+          const designId = urlParams.get('designId');
+          
+          if (designId && typeof window !== 'undefined') {
+            const storedData = localStorage.getItem(`ar_design_${designId}`);
+            if (storedData) {
+              try {
+                const parsedData = JSON.parse(storedData);
+                setDesignData(parsedData);
+                console.log('Loaded design data from QR code:', parsedData);
+              } catch (error) {
+                console.error('Error parsing stored design data:', error);
+                setError('Invalid design data. Please try scanning the QR code again.');
+                setIsInitializing(false);
+                return;
+              }
+            } else {
+              setError('Design data not found. Please make sure you scanned a valid QR code.');
+              setIsInitializing(false);
+              return;
+            }
+          } else {
+            // No design ID, use current context data
+            console.log('No design ID found, using current context data');
+          }
+          
+          // Check for AR support
+          let arSupported = false;
+          
           if ('xr' in navigator) {
             try {
-              const supported = await (navigator as any).xr.isSessionSupported('immersive-ar');
-              console.log('WebXR AR supported:', supported);
-              setIsARSupported(supported);
+              arSupported = await (navigator as any).xr.isSessionSupported('immersive-ar');
+              console.log('WebXR AR supported:', arSupported);
             } catch (xrError) {
               console.log('WebXR check failed:', xrError);
-              setIsARSupported(false);
+              arSupported = false;
             }
           } else {
             // Fallback: Check user agent for mobile devices
             const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             console.log('Mobile device detected:', isMobile);
-            setIsARSupported(isMobile);
+            arSupported = isMobile;
           }
           
+          setIsARSupported(arSupported);
+          setIsInitializing(false);
           setIsLoading(false);
+          
+          // Show instructions for mobile users
+          if (arSupported) {
+            setShowInstructions(true);
+            // Auto-hide instructions after 5 seconds
+            setTimeout(() => {
+              setShowInstructions(false);
+            }, 5000);
+          }
+          
         } catch (err) {
           console.error('Error checking AR support:', err);
-          setError('Failed to check AR capabilities');
+          setError('Failed to initialize AR. Please try refreshing the page.');
+          setIsInitializing(false);
           setIsLoading(false);
         }
       };
 
-      checkARSupport();
+      initializeAR();
       document.body.style.overflow = 'hidden';
-      
-      // Hide instructions after 3 seconds
-      const timer = setTimeout(() => {
-        setShowInstructions(false);
-      }, 3000);
-      
-      return () => {
-        clearTimeout(timer);
-      };
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -316,12 +331,29 @@ const ARViewer: React.FC<ARViewerProps> = ({ isOpen, onClose }) => {
 
   const handleRetry = () => {
     setError(null);
+    setIsInitializing(true);
     setIsLoading(true);
-    // Trigger re-check
-    window.location.reload();
+    
+    // Re-initialize AR
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   if (!isOpen) return null;
+
+  // Show loading screen during initialization
+  if (isInitializing) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg font-medium mb-2">Initializing AR Experience</p>
+          <p className="text-sm text-gray-300">Please wait while we prepare your design...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return <ARError message={error} onRetry={handleRetry} />;
@@ -363,22 +395,29 @@ const ARViewer: React.FC<ARViewerProps> = ({ isOpen, onClose }) => {
 
       {/* Instructions Overlay */}
       {showInstructions && (
-        <div className="absolute inset-0 bg-black bg-opacity-75 z-20 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black bg-opacity-80 z-20 flex items-center justify-center p-4">
           <div className="text-center text-white p-8 max-w-md">
             <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Smartphone className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-bold mb-4">Welcome to AR View</h2>
-            <p className="text-lg mb-6">
-              You can now see your custom mug design in 3D. 
-              {isARSupported ? ' Tap the AR button below to place it in your real environment.' : ' This preview shows how your mug will look.'}
+            <h2 className="text-xl font-bold mb-4">AR Experience Ready!</h2>
+            <p className="text-base mb-6 leading-relaxed">
+              {isARSupported 
+                ? 'Your custom mug design is ready to view in augmented reality. You can interact with the 3D model and place it in your real environment.'
+                : 'Your custom mug design is ready to view in 3D. For the full AR experience, please use a compatible mobile device.'
+              }
             </p>
-            <button
-              onClick={() => setShowInstructions(false)}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Continue
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowInstructions(false)}
+                className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+              >
+                Start Viewing
+              </button>
+              <p className="text-xs text-gray-400">
+                Tap anywhere to dismiss this message
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -430,9 +469,10 @@ const ARViewer: React.FC<ARViewerProps> = ({ isOpen, onClose }) => {
               {isARSupported ? (
                 <button
                   onClick={handleStartAR}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
+                  className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 shadow-lg"
                 >
-                  <span>Start AR Experience</span>
+                  <Smartphone className="w-5 h-5" />
+                  <span>Launch AR Mode</span>
                 </button>
               ) : (
                 <div className="space-y-2">
@@ -447,6 +487,14 @@ const ARViewer: React.FC<ARViewerProps> = ({ isOpen, onClose }) => {
                   </button>
                 </div>
               )}
+              
+              <button
+                onClick={handleRetry}
+                className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Refresh AR</span>
+              </button>
               
               <button
                 onClick={onClose}
