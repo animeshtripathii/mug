@@ -50,7 +50,7 @@ const ARQRCodeModal: React.FC<ARQRCodeModalProps> = ({
         qrElements,
         canvasSize,
         canvasBackgroundColor,
-        'http://10.12.22.96:5173' // Use your laptop's local IP as baseUrl
+        window.location.origin // <-- This will use the current domain!
       );
       
       setQrCodeUrl(qrUrl);
@@ -67,7 +67,7 @@ const ARQRCodeModal: React.FC<ARQRCodeModalProps> = ({
         timestamp: Date.now()
       };
       
-      const link = generateARShareLink(designData, 'http://10.12.22.96:5173');
+      const link = generateARShareLink(designData, window.location.origin);
       setShareLink(link);
       
       console.log('AR QR code generated successfully');
